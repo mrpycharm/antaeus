@@ -9,7 +9,7 @@ import org.junit.jupiter.api.assertThrows
 
 class InvoiceServiceTest {
     private val dal = mockk<AntaeusDal> {
-        every { fetchInvoice(404) } returns null
+        every { invoiceDal.fetchInvoice(404) } returns null
     }
 
     private val invoiceService = InvoiceService(dal = dal)

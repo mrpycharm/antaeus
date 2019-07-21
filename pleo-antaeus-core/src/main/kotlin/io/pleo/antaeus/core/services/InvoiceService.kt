@@ -10,10 +10,10 @@ import io.pleo.antaeus.models.Invoice
 
 class InvoiceService(private val dal: AntaeusDal) {
     fun fetchAll(): List<Invoice> {
-       return dal.fetchInvoices()
+       return dal.invoiceDal.fetchInvoices()
     }
 
     fun fetch(id: Int): Invoice {
-        return dal.fetchInvoice(id) ?: throw InvoiceNotFoundException(id)
+        return dal.invoiceDal.fetchInvoice(id) ?: throw InvoiceNotFoundException(id)
     }
 }

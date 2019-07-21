@@ -11,14 +11,14 @@ import kotlin.random.Random
 // This will create all schemas and setup initial data
 internal fun setupInitialData(dal: AntaeusDal) {
     val customers = (1..100).mapNotNull {
-        dal.createCustomer(
+        dal.customerDal.createCustomer(
             currency = Currency.values()[Random.nextInt(0, Currency.values().size)]
         )
     }
 
     customers.forEach { customer ->
         (1..10).forEach {
-            dal.createInvoice(
+            dal.invoiceDal.createInvoice(
                 amount = Money(
                     value = BigDecimal(Random.nextDouble(10.0, 500.0)),
                     currency = customer.currency

@@ -42,6 +42,12 @@ class AntaeusRest (
     init {
         // Set up URL endpoints for the rest app
         app.routes {
+           path("") {
+               // URL: /
+               get("") {
+                   it.json(mapOf("greetings" to "Hello World"))
+               }
+           }
            path("rest") {
                // Route to check whether the app is running
                // URL: /rest/health
