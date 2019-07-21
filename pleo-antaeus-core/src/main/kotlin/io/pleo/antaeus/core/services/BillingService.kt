@@ -7,7 +7,7 @@ import io.pleo.antaeus.models.InvoiceStatus
 import io.pleo.antaeus.core.exceptions.CurrencyMismatchException
 import io.pleo.antaeus.core.exceptions.CustomerNotFoundException
 import io.pleo.antaeus.core.exceptions.NetworkException
-
+import io.pleo.antaeus.app.logger
 
 class BillingService(
     private val paymentProvider: PaymentProvider,
@@ -21,6 +21,7 @@ class BillingService(
      * thousands of requests in a second.
      */
     fun chargePendingInvoices() {
+        logger.info("Charging pending invoices.")
         payInvoices(InvoiceStatus.PENDING)
     }
 
@@ -28,6 +29,7 @@ class BillingService(
      * due to any network or other kind of unexpected error.
      */
     fun retryInvoices() {
+        logger.info("retrying pending invoices.")
         payInvoices(InvoiceStatus.RETRY)
     }
 
@@ -49,20 +51,30 @@ class BillingService(
      * @param invoice the single invoice that needs to be processed.
      */
     private fun processInvoice(invoice: Invoice) {
+        logger.info("Processing invoice id: ${invoice.id}")
+
         try {
             var paid = paymentProvider.charge(invoice)
             when(paid) {
-                true -> invoiceDal.setInvoiceStatus(invoice.id, InvoiceStatus.PAID)
-                false -> invoiceDal.setInvoiceStatus(invoice.id, InvoiceStatus.FAILED)
+                true -> {
+                    logger.info("Setting invoice status to PAID for ${invoice.id}")
+                    invoiceDal.setInvoiceStatus(invoice.id, InvoiceStatus.PAID)
+                }
+                false -> {
+                    logger.info("Setting invoice status to FAILED for ${invoice.id}")
+                    invoiceDal.setInvoiceStatus(invoice.id, InvoiceStatus.FAILED)
+                }
             }
 
         } catch (e: Exception) {
-            // TODO: log exception
+            logger.error("Error: ${e.message}")
             when(e) {
                 is CustomerNotFoundException, is CurrencyMismatchException -> {
+                    logger.info("Setting invoice status to FAILED for ${invoice.id}")
                     invoiceDal.setInvoiceStatus(invoice.id, InvoiceStatus.FAILED)
                 }
                 is NetworkException, is Exception -> {
+                    logger.info("Setting invoice status to RETRY for ${invoice.id}")
                     invoiceDal.setInvoiceStatus(invoice.id, InvoiceStatus.RETRY)
                 }
             }

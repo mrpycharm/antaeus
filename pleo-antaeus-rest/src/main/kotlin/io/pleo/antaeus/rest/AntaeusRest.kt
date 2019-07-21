@@ -11,9 +11,7 @@ import io.pleo.antaeus.core.exceptions.EntityNotFoundException
 import io.pleo.antaeus.core.services.CustomerService
 import io.pleo.antaeus.core.services.InvoiceService
 import io.pleo.antaeus.models.InvoiceStatus
-import mu.KotlinLogging
-
-internal val logger = KotlinLogging.logger {}
+import io.pleo.antaeus.app.logger
 
 class AntaeusRest (
     private val invoiceService: InvoiceService,
