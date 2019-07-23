@@ -8,6 +8,7 @@ import io.pleo.antaeus.core.exceptions.CurrencyMismatchException
 import io.pleo.antaeus.core.exceptions.CustomerNotFoundException
 import io.pleo.antaeus.core.exceptions.NetworkException
 import io.pleo.antaeus.app.logger
+import io.pleo.antaeus.models.InvoiceFailureReason
 
 class BillingService(
     private val paymentProvider: PaymentProvider,
@@ -23,6 +24,8 @@ class BillingService(
     fun chargePendingInvoices() {
         logger.info("Charging pending invoices.")
         payInvoices(InvoiceStatus.PENDING)
+
+        // TODO: generate a report and send an email to the admin
     }
 
     /* retryInvoices will be responsible for retrying all the invoices that failed
@@ -62,16 +65,23 @@ class BillingService(
                 }
                 false -> {
                     logger.info("Setting invoice status to FAILED for ${invoice.id}")
-                    invoiceDal.setInvoiceStatus(invoice.id, InvoiceStatus.FAILED)
+                    invoiceDal.setInvoiceStatus(invoice.id, InvoiceStatus.FAILED,
+                            InvoiceFailureReason.INSUFFICIENT_BALANCE)
                 }
             }
 
         } catch (e: Exception) {
             logger.error("Error: ${e.message}")
             when(e) {
-                is CustomerNotFoundException, is CurrencyMismatchException -> {
+                is CustomerNotFoundException -> {
                     logger.info("Setting invoice status to FAILED for ${invoice.id}")
-                    invoiceDal.setInvoiceStatus(invoice.id, InvoiceStatus.FAILED)
+                    invoiceDal.setInvoiceStatus(invoice.id, InvoiceStatus.FAILED,
+                            InvoiceFailureReason.CUSTOMER_NOT_FOUND)
+                }
+                is CurrencyMismatchException -> {
+                    logger.info("Setting invoice status to FAILED for ${invoice.id}")
+                    invoiceDal.setInvoiceStatus(invoice.id, InvoiceStatus.FAILED,
+                            InvoiceFailureReason.CURRENCY_MISMATCH)
                 }
                 is NetworkException, is Exception -> {
                     logger.info("Setting invoice status to RETRY for ${invoice.id}")
