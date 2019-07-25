@@ -68,7 +68,7 @@ Since the application had a single Data Access Layer, it could become very cumbe
 
 #### Schema
 I will list down the enhancements and functionalities I added in order to support charging the subscription fee.
-##### `RETRY` Invoice status
+##### A new invoioce status
 Added a new invoice status called `RETRY`. The reason behind adding this status was to keep track of those invoices that failed due to network exceptions or any other general exceptions. The invoices with a `RETRY` status would then be retried by a scheduler after every five minutes. One thing that I think **could** have improved the functionality was to add retry attempts on those invoices and a progressive timeout on the scheduled job.
 ##### Failure reason for the failed invoices
 Added a new field in the `InvoiceTable` called `failureReason`. The rational behind adding this field was to keep trac of the reason due to which an invoice charge was failed. For now, the unique failure reasons are as follows:
