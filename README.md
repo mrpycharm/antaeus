@@ -66,7 +66,7 @@ Added logging throughout the code (request logging for every request that is ser
 Since the application had a single Data Access Layer, it could become very cumbersome when we scale. That single DAL class would have hundreds and thousands of functions. I divided this DAL into two different DALs for now. `InvoiceDal` and `CustomerDal`. This would help us keep one DAL's functionality isolated from the others.
 
 
-#### Schema
+### Schema
 I will list down the enhancements and functionalities I added in order to support charging the subscription fee.
 ##### A new invoioce status
 Added a new invoice status called `RETRY`. The reason behind adding this status was to keep track of those invoices that failed due to network exceptions or any other general exceptions. The invoices with a `RETRY` status would then be retried by a scheduler after every five minutes. One thing that I think **could** have improved the functionality was to add retry attempts on those invoices and a progressive timeout on the scheduled job.
@@ -77,7 +77,7 @@ Added a new field in the `InvoiceTable` called `failureReason`. The rational beh
 * `CURRENCY_MISMATCH`
 * `NONE` (default)
 
-#### Schedulers
+### Schedulers
 Added a whole new package for job scheduling in the app. For now there are two schedulers that will be initialized upon app initialization and schedule later jobs.
 * `BillingScheduler`: A scheduler that will be scheduled to run at every 1st of the month, process pending invoices and, re-schedule for the next month.
 * `BillingRetryScheduler`: A scheduler that will be scheduled to run after every 5 minutes and retry all the invoices that failed due to network or any other general exception.
@@ -85,7 +85,7 @@ Added a whole new package for job scheduling in the app. For now there are two s
 There is a one major draw back of these scheduler. **This would never scale**. Assuming we have more than one instances of our app running on different machines, we would have N numbers of schedules, scheduled at a given time. As a result, race conditions are possible. To avoid this, we can have a single instance of our app on a separate machine (no access via APIs) which will be the only instance running the schedules. 
 ###### Note:
 Invoices that are failed due to `CustomerNotFoundException` or `CurrencyMismatchException` or insufficient balance are not marked with a `RETRY` status. These are marked as `FAILED` with a failure reason accordingly. These invoices can then be made available for display for customer support or monitoring via some back-office portal.
-#### Billing service
+### Billing service
 Implemented the following functions in the billing service:
 * `chargePendingInvoices`: a public function that will be called via the billing scheduleder.
 * `retryInvoices`: another public function that will be called via the retry billing scheduler.
