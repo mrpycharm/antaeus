@@ -15,6 +15,9 @@ import io.pleo.antaeus.data.AntaeusDal
 import io.pleo.antaeus.data.CustomerTable
 import io.pleo.antaeus.data.InvoiceTable
 import io.pleo.antaeus.rest.AntaeusRest
+import io.pleo.antaeus.scheduler.BillingScheduler
+import io.pleo.antaeus.scheduler.Scheduler
+import mu.KotlinLogging
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.StdOutSqlLogger
@@ -23,6 +26,9 @@ import org.jetbrains.exposed.sql.transactions.TransactionManager
 import org.jetbrains.exposed.sql.transactions.transaction
 import setupInitialData
 import java.sql.Connection
+
+// Initialize app logger
+val logger = KotlinLogging.logger {}
 
 fun main() {
     // The tables to create in the database.
@@ -56,12 +62,19 @@ fun main() {
     val customerService = CustomerService(dal = dal.customerDal)
 
     // This is _your_ billing service to be included where you see fit
-    val billingService = BillingService(paymentProvider = paymentProvider)
+    val billingService = BillingService(paymentProvider = paymentProvider, invoiceDal = dal.invoiceDal)
 
     // Create REST web service
     AntaeusRest(
-        invoiceService = invoiceService,
-        customerService = customerService
+            invoiceService = invoiceService,
+            customerService = customerService
     ).run()
+
+    // start the billing scheduler
+    logger.info("Initializing the main scheduler.")
+    val scheduler = Scheduler(billingService = billingService)
+    scheduler.init()
+    logger.info("All schedulers initialized.")
+
 }
 
