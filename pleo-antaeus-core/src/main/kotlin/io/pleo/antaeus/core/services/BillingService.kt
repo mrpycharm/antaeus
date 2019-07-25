@@ -9,6 +9,7 @@ import io.pleo.antaeus.core.exceptions.CustomerNotFoundException
 import io.pleo.antaeus.core.exceptions.NetworkException
 import io.pleo.antaeus.app.logger
 import io.pleo.antaeus.models.InvoiceFailureReason
+import kotlinx.coroutines.*
 
 class BillingService(
     private val paymentProvider: PaymentProvider,
@@ -37,9 +38,12 @@ class BillingService(
     }
 
     private fun payInvoices(status: InvoiceStatus) {
-        // TODO: add delay between mapping
-        invoiceDal.fetchInvoicesByStatus(status).map {
-            processInvoice(it)
+        runBlocking {
+            invoiceDal.fetchInvoicesByStatus(status)
+                    .map {
+                        async { processInvoice(it) }
+                    }
+                    .map { it.await() }
         }
     }
 
@@ -53,7 +57,7 @@ class BillingService(
      *
      * @param invoice the single invoice that needs to be processed.
      */
-    private fun processInvoice(invoice: Invoice) {
+    private suspend fun processInvoice(invoice: Invoice) {
         logger.info("Processing invoice id: ${invoice.id}")
 
         try {

@@ -15,6 +15,8 @@ import io.pleo.antaeus.data.AntaeusDal
 import io.pleo.antaeus.data.CustomerTable
 import io.pleo.antaeus.data.InvoiceTable
 import io.pleo.antaeus.rest.AntaeusRest
+import io.pleo.antaeus.scheduler.BillingScheduler
+import io.pleo.antaeus.scheduler.Scheduler
 import mu.KotlinLogging
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
@@ -64,8 +66,15 @@ fun main() {
 
     // Create REST web service
     AntaeusRest(
-        invoiceService = invoiceService,
-        customerService = customerService
+            invoiceService = invoiceService,
+            customerService = customerService
     ).run()
+
+    // start the billing scheduler
+    logger.info("Initializing the main scheduler.")
+    val scheduler = Scheduler(billingService = billingService)
+    scheduler.init()
+    logger.info("All schedulers initialized.")
+
 }
 
