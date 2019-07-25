@@ -56,12 +56,12 @@ Happy hacking 😁!
 
 
 ## Experience, solutions and approaches
-Using kotlin the very first time was an amazing experience for me. I am always thrilled to learn new languages. Coming form a Python background, I was used to a lot of run time exceptions and errors due to lack of type checking in Python. However, kotlin reduces these error to an exponential value with its amazing type checking system. As a developer I was able to spend more time for coming up a solution as compared to debugging the issues. Since, I have never used Kotlin before, this gave me an awesome opportunity to explore this new language.
+Using kotlin the very first time was an amazing experience for me. I am always thrilled to learn new languages. Coming form a Python background, I was used to a lot of run time exceptions and errors due to lack of type checking in Python. However, kotlin reduces these error to an exponential value with its amazing type checking system. As a developer I was able to spend more time for coming up with a solution as compared to debugging the issues. Since, I have never used Kotlin before, this gave me an awesome opportunity to explore this new language.
 
 ### Refactoring
-During this challenge I found a few things (from my experience) in the code that needed a little bit of refactoring. The major entities are:
+During this challenge I found a few things (from my experience) in the code that needed a little bit of refactoring. The major refactorings are:
 ##### Logging
-Added logging throughout the code (request logging for every request that is served via the Javalin server, debug and info statements throughout the code in order to log important informationm that could be used to debug any issues when faced.)
+Added logging throughout the code (request logging for every request that is served via the Javalin server, debug and info statements throughout the code in order to log important informationm that could be used to debug any issues when faced).
 ##### DAL separation
 Since the application had a single Data Access Layer, it could become very cumbersome when we scale. That single DAL class would have hundreds and thousands of functions. I divided this DAL into two different DALs for now. `InvoiceDal` and `CustomerDal`. This would help us keep one DAL's functionality isolated from the others.
 
@@ -71,7 +71,7 @@ I will list down the enhancements and functionalities I added in order to suppor
 ##### A new invoioce status
 Added a new invoice status called `RETRY`. The reason behind adding this status was to keep track of those invoices that failed due to network exceptions or any other general exceptions. The invoices with a `RETRY` status would then be retried by a scheduler after every five minutes. One thing that I think **could** have improved the functionality was to add retry attempts on those invoices and a progressive timeout on the scheduled job.
 ##### Failure reason for the failed invoices
-Added a new field in the `InvoiceTable` called `failureReason`. The rational behind adding this field was to keep trac of the reason due to which an invoice charge was failed. For now, the unique failure reasons are as follows:
+Added a new field in the `InvoiceTable` called `failureReason`. The rational behind adding this field was to keep track of the reason due to which an invoice charge was failed. For now, the unique failure reasons are as follows:
 * `INSUFFICIENT_BALANCE`
 * `CUSTOMER_NOT_FOUND`
 * `CURRENCY_MISMATCH`
@@ -79,8 +79,10 @@ Added a new field in the `InvoiceTable` called `failureReason`. The rational beh
 
 #### Schedulers
 Added a whole new package for job scheduling in the app. For now there are two schedulers that will be initialized upon app initialization and schedule later jobs.
-* `BillingScheduler`: A scheduler that will be scheduled to run at every 1st of the month and re-schedule for the next month.
+* `BillingScheduler`: A scheduler that will be scheduled to run at every 1st of the month, process pending invoices and, re-schedule for the next month.
 * `BillingRetryScheduler`: A scheduler that will be scheduled to run after every 5 minutes and retry all the invoices that failed due to network or any other general exception.
+###### Drawbacks:
+There is a one major draw back of these scheduler. **This would never scale**. Assuming we have more than one instances of our app running on different machines, we would have N numbers of schedules, scheduled at a given time. As a result, race conditions are possible. To avoid this, we can have a single instance of our app on a separate machine (no access via APIs) which will be the only instance running the schedules. 
 ###### Note:
 Invoices that are failed due to `CustomerNotFoundException` or `CurrencyMismatchException` or insufficient balance are not marked with a `RETRY` status. These are marked as `FAILED` with a failure reason accordingly. These invoices can then be made available for display for customer support or monitoring via some back-office portal.
 #### Billing service
@@ -90,4 +92,4 @@ Implemented the following functions in the billing service:
 * `processInvoice`: a private function that will get the invoices from either of the two functions mentioned above and process it (charge via payment provider) using coroutines.
 
 ### Closure
-This was an amazing challenge for me. I am sure there a definitely a few things that I have missed or i could have done in a more efficient way. Nevertheless, I am very excited to get the results and find out what my shortcomings are and what are the areas that I can improve.
+This was an amazing challenge for me. I am sure there definitely a few things that I have missed or I could have done in a more efficient way. Nevertheless, I am very excited to find out the results and find out what my shortcomings are and what are the areas that I can improve.
